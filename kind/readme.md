@@ -18,8 +18,8 @@ You can export these information manually to a specific file via
 Normally Kind has access to Docker Hub, etc. If your working behind a corporate proxy etc I had some problems.
 I manually pulled all required images to my maschine and then loaded them into the Kind-Nodes via
 
-    kind load docker-image --name gitops <your_image_mirror>/fluxcd/flux:1.18.0
-    kind load docker-image --name gitops <your_image_mirror>/fluxcd/helm-operator:1.0.0
+    kind load docker-image --name gitops fluxcd/flux:1.18.0
+    kind load docker-image --name gitops fluxcd/helm-operator:1.0.0
     
 
 ## delete kind cluster
