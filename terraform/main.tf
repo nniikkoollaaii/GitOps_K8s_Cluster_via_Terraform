@@ -16,7 +16,7 @@ resource "kubernetes_secret" "flux_git_auth" {
   data = {
     GIT_AUTHUSER = var.git_username
     #unescaped: <auth-key>
-    GIT_AUTHPASSWORD = var.git_password
+    GIT_AUTHKEY = var.git_password
 
   }
   type = "Opaque"
