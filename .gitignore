@@ -1,0 +1,9 @@
+.vscode
+/**/.vscode
+**/.terraform/
+*.tfstate
+*.tfstate.backup
+
+**secret.tf
+
+**kind-kubeconfig

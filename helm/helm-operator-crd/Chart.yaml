@@ -1,0 +1,3 @@
+apiVersion: 1.0.0
+name: Dummy Helm Chart for applying Custom Ressource Definition via Terraform before applying Helm Release which depends on this CRD
+version: 1.0.0
