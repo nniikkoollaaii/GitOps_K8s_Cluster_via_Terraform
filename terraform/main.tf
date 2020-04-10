@@ -8,20 +8,6 @@ resource "kubernetes_namespace" "gitops_namespace" {
   }
 }
 
-resource "kubernetes_secret" "flux_git_auth" {
-  metadata {
-    name = "flux-git-auth"
-    namespace = kubernetes_namespace.gitops_namespace.metadata[0].name
-  }
-  data = {
-    GIT_AUTHUSER = var.git_username
-    #unescaped: <auth-key>
-    GIT_AUTHKEY = var.git_password
-
-  }
-  type = "Opaque"
-}
-
 resource "kubernetes_secret" "git_auth" {
   metadata {
     name = "git-auth"
@@ -66,7 +52,7 @@ resource "helm_release" "flux" {
 
   set {
     name  = "git.url"
-    value = "https://$(GIT_AUTHUSER):$(GIT_AUTHKEY)@github.com/nniikkoollaaii/GitOps_K8s_Cluster_via_Terraform_Config.git"
+    value = "https://$(username):$(password)@github.com/nniikkoollaaii/GitOps_K8s_Cluster_via_Terraform_Config.git"
   }
 
   set {
@@ -91,7 +77,7 @@ resource "helm_release" "flux" {
 
   set {
     name  = "env.secretName"
-    value = "flux-git-auth"
+    value = "git-auth"
   }
 
   set {
