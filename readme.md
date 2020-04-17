@@ -12,13 +12,18 @@ And now
 
 - you don't want everybody creating k8s ressources have a kubeconfig allowing him/her to do so
 
-- instead every config yhould be in git (IaC)
+- instead every config should be in git (IaC)
 
 - instead every config change should be approved by several people
 
 - ...
 
 -> use [GitOps Principle](https://www.weave.works/blog/what-is-gitops-really)
+
+- with this approach your CI/CD System don't have to contain credentials to access your kubernetes cluster (Pull-based approach)
+
+- the complete definition of your cluster's state is in git and accessible to you in case of an recreation of your k8s cluster
+
 
 this Repository is a fairly easy try to implement GitOps for main k8s configuration
 
@@ -84,12 +89,68 @@ Export the kubeconfig file for your created KinD Cluster via
 see readme.md in Folder "terraform"
 -> 4. Step
 
+## GitOps Architecture
+
+With Terraform you're setting up your admin flux and helm operator instance
+Flux is for syncing plain kubernetes manifests to your cluster
+The Helm Operator watches for Custom Resource Definitions "HelmRelease" and applies a Helm Release of a Helm Chart to your cluster
+
+### Admin Repo
+
+The admin flux instance points to your admin cluster config [git repository](https://github.com/nniikkoollaaii/GitOps_K8s_Cluster_via_Terraform_Config)
+Here you're defining your namespaces, RBAC definitions, ...
+And you're setting up flux and helm operator instances for your teams with restricting rbac roles
+
+All your teams could use your admin git repo and therefore the admin flux and helm operator instances. But then you can't prohibit the creation of ressources in namespaces a team is not allowed to do. At least not with RBAC. You can manually review their pull requests and so on but therefor RBAC is made.
+
+### Team1
+
+So you have Team1 which uses a single namespace for their app.
+In the admin repo you're defining their namespace and a HelmRelease for Flux and one for HelmOperator so that the Admin HelmOperator picks these HelmReleases off and deploys a HelmRelease in the team's namespace. In the HelmRelease values are defined for the Helm Chart, so that Flux and HelmOperator are created with RBAC with permissions only for the teams namespace.
+
+Team1's flux is pointing to their [Deployment Git Repo](https://github.com/nniikkoollaaii/GitOps_K8s_Cluster_via_Terraform_Config_Team1) at subpath "manifests".
+Here team1 can define k8s ressources like additional roles, ... and HelmReleases. 
+Team1-Flux syncs these HelmReleases in Namespace team1. Here Team1-HelmOperator picks it off and depoys these application helm chart which is defined ad the same Git Repo at subpath "helm/"
+
+### Team2
+
+Team2 has a more complex application and needs a staging environment for the application
+
+So in the admin repo multiple namespaces defined:
+team2-mgmt: contains Team2-Flux with RBAC permissions for namespaces of team2
+team2-dev: contains a Helm-Operator instance with RBAC for namespace team2-dev
+team2-prod: contains a Helm-Operator instance with RBAC for namespace team2-prod
+
+Team2-Flux points to a [overall config repo](https://github.com/nniikkoollaaii/GitOps_K8s_Cluster_via_Terraform_Config_Team2_Manifests) for team2 deployment.
+In this example it defines the HelmRelease manifest for deploying a Helm release to both staging environments.
+
+Both HelmRelease are pointing to a Helm Chart in Team2's [Helm Chart Git Repository](https://github.com/nniikkoollaaii/GitOps_K8s_Cluster_via_Terraform_Config_Team2_Helm) for their application.
+The HelmRelease for the dev stage at the develop branch and the HelmRelease for the prod stage at the master branch.
+So you can promote changes in your helm chart and new image versions used in your helm chart via a branch merge
+
+Image versions of your app could be hold in a values file right next to your chart and be referenced by your HelmRelease object.
+This is similar to create an helm release via "helm install test ./example -f values.prod.yaml"
+
+
+
+### Helm Operator
+
+
+#### Authentication to git
+
+
+You can reference an k8s secret in your HelmRelease to access your git repository. Poorly [documented but available](https://github.com/fluxcd/helm-operator/pull/172)
+
+
+
 ## Test your GitOps
 
     kubectl get ns
 
 should show the namespace "gitops" with your resources
 and the namespace "test" created by Flux
+
+In addition inspect the team namespaces
 
 -> 5. Step
 
@@ -104,15 +165,6 @@ should show now the namespace "foobar" too.
 ## Comparision between CIOps and GitOps
 
 - ToDo
-
-## Helm Operator
-
-
-### Authentication to git
-
-
-You can reference an k8s secret in your HelmRelease. Poorly [documented but available](https://github.com/fluxcd/helm-operator/pull/172)
-
 
 ## ToDo
 
