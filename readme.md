@@ -150,6 +150,44 @@ The Helm Chart is included in this repo at /helm/sealed-secrets.
 
 An HelmRelease is in the Admin-Config Repo.
 
+### get binary
+
+download from [here](https://github.com/bitnami-labs/sealed-secrets/releases)
+
+### Disaster Recovery
+
+When sealed secret controller's private key secret is lost you cannot decrypt your secrets. You should backup it to still be able to decrypt your secrets saved in git in event of an disaster
+
+    kubectl get secret -n adm sealed-secrets-key -o yaml --export > sealed-secrets.key.yaml
+
+In event of a disaster recovery replace the automatically created new key with your backup
+
+    kubectl replace secret -n adm sealed-secrets-key -f sealed-secrets.key.yaml
+    kubectl delete pod -n adm -l app=sealed-secrets
+
+### encrypt secrets
+
+get the public cert
+
+    kubeseal --fetch-cert \
+    --controller-namespace=adm \
+    --controller-name=sealed-secrets \
+    > pub-cert.pem
+
+create secret with username and password to access your git repo
+
+    kubectl -n team1 create secret generic basic-auth \
+    --from-literal=username=<username to access git> \
+    --from-literal=password=<password> \
+    --dry-run \
+    -o json > git.team1.secret.json
+
+    kubeseal --format=yaml --cert=pub-cert.pem < git.team1.secret.json > git.team1.secret.yaml
+
+delete the json file and copy the file git.team1.secret.yaml to /team1 in your [Admin-Config-Repo](https://github.com/nniikkoollaaii/GitOps_K8s_Cluster_via_Terraform_Config)
+
+repeat for team2-mgmt, team2-dev, team2-prod
+
 
 ## Comparision between CIOps and GitOps
 

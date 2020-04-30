@@ -7,3 +7,7 @@
 **secret.tf
 
 **kind-kubeconfig
+
+**key.yaml
+
+**secret.json
