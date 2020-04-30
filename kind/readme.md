@@ -20,6 +20,7 @@ I manually pulled all required images to my maschine and then loaded them into t
 
     kind load docker-image --name gitops fluxcd/flux:1.18.0
     kind load docker-image --name gitops fluxcd/helm-operator:1.0.0
+    kind load docker-image --name gitops quay.io/bitnami/sealed-secrets-controller:v0.12.1
     
 
 ## delete kind cluster

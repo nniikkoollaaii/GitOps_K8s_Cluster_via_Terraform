@@ -142,25 +142,14 @@ This is similar to create an helm release via "helm install test ./example -f va
 You can reference an k8s secret in your HelmRelease to access your git repository. Poorly [documented but available](https://github.com/fluxcd/helm-operator/pull/172)
 
 
+## Securly save secrets in git
 
-## Test your GitOps
+Using the [sealed secret controller](https://github.com/bitnami-labs/sealed-secrets) from bitnami you can save encrypted secret values in your public git repo. An controller in your kubernetes cluster will detect CRDs of type SealedSecrets and decode them in normal K8s Secrets to use with your pod manifest.
 
-    kubectl get ns
+The Helm Chart is included in this repo at /helm/sealed-secrets.
 
-should show the namespace "gitops" with your resources
-and the namespace "test" created by Flux
+An HelmRelease is in the Admin-Config Repo.
 
-In addition inspect the team namespaces
-
--> 5. Step
-
-create a new file similar to the exisiting file in your k8s config repo to create one more namespace. Name it "foobar". Commit and push it.
-
-Flux will scan the repository and apply changes every 5m (Default setting git.pollInterval)
-
-    kubectl get ns
-
-should show now the namespace "foobar" too.
 
 ## Comparision between CIOps and GitOps
 
@@ -169,5 +158,3 @@ should show now the namespace "foobar" too.
 ## ToDo
 
 - GarbageCollection?
-
-- Multi-Tenancy: https://www.weave.works/blog/developing-apps-multitenant-clusters-with-gitops
