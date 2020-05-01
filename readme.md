@@ -131,10 +131,7 @@ So you can promote changes in your helm chart and new image versions used in you
 Image versions of your app could be hold in a values file right next to your chart and be referenced by your HelmRelease object.
 This is similar to create an helm release via "helm install test ./example -f values.prod.yaml"
 
-
-
 ### Helm Operator
-
 
 #### Authentication to git
 
@@ -158,31 +155,27 @@ download from [here](https://github.com/bitnami-labs/sealed-secrets/releases)
 
 When sealed secret controller's private key secret is lost you cannot decrypt your secrets. You should backup it to still be able to decrypt your secrets saved in git in event of an disaster
 
-    kubectl get secret -n adm sealed-secrets-key -o yaml --export > sealed-secrets.key.yaml
+    kubectl get secret -n adm -l sealedsecrets.bitnami.com/sealed-secrets-key -o yaml > sealed-secrets.key
 
 In event of a disaster recovery replace the automatically created new key with your backup
 
-    kubectl replace secret -n adm sealed-secrets-key -f sealed-secrets.key.yaml
-    kubectl delete pod -n adm -l app=sealed-secrets
+    kubectl apply -f sealed-secrets.key
+    kubectl delete pod -n adm -l name=sealed-secrets-controller
 
 ### encrypt secrets
 
 get the public cert
 
-    kubeseal --fetch-cert \
-    --controller-namespace=adm \
-    --controller-name=sealed-secrets \
-    > pub-cert.pem
+    kubeseal --fetch-cert --controller-namespace=adm --controller-name=sealed-secrets > sealed-secrets.cert.pem
 
 create secret with username and password to access your git repo
 
-    kubectl -n team1 create secret generic basic-auth \
-    --from-literal=username=<username to access git> \
-    --from-literal=password=<password> \
-    --dry-run \
-    -o json > git.team1.secret.json
+    kubectl -n team1 create secret generic git-auth --from-literal=username=<username to access git> --from-literal=password=<password> --dry-run -o json > git.team1.secret.json
 
-    kubeseal --format=yaml --cert=pub-cert.pem < git.team1.secret.json > git.team1.secret.yaml
+adn seal it
+
+    kubeseal --format=yaml --cert=sealed-secrets.cert.pem <git.team1.secret.json > git.team1.sealedsecret.yaml
+
 
 delete the json file and copy the file git.team1.secret.yaml to /team1 in your [Admin-Config-Repo](https://github.com/nniikkoollaaii/GitOps_K8s_Cluster_via_Terraform_Config)
 
